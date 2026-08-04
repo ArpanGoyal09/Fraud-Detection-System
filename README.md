@@ -6,7 +6,7 @@ to be deployed via FastAPI on OCI.
 ## Status
 - [x] EDA + preprocessing
 - [x] Model training (Random Forest, PR-AUC 0.86)
-- [ ] FastAPI wrapper
+- [x] FastAPI wrapper
 - [ ] OCI deployment
 - [ ] Final documentation
 
