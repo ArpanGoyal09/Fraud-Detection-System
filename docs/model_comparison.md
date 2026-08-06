@@ -1,50 +1,44 @@
 # Model Comparison
 
-**Purpose:** The deployed model (Random Forest) was benchmarked against two alternative approaches to validate that it was a deliberate choice, not the only option considered. All models were evaluated on the identical train/test split (`random_state=42`, `test_size=0.2`, stratified) and identical preprocessing, so differences reflect the models themselves, not data variance.
+Random Forest is the model actually deployed in this project. Before settling on it, I benchmarked it against XGBoost and Isolation Forest to check whether a different approach would do better. All three were trained and evaluated on the same train/test split (`random_state=42`, `test_size=0.2`, stratified) and the same preprocessing, so the comparison is fair and any difference in results comes from the model, not the data.
 
----
+## Results
 
-## Summary
-
-| Model | Precision | Recall | PR-AUC | False Positives | False Negatives |
+| Model | Precision | Recall | PR-AUC | FP | FN |
 |---|---|---|---|---|---|
-| Logistic Regression (baseline) | 0.06 | 0.91 | — | ~1,500 | ~9 |
-| **Random Forest (deployed)** | **0.95** | **0.80** | **0.86** | **4** | **20** |
+| Logistic Regression | 0.06 | 0.91 | — | ~1,500 | ~9 |
+| **Random Forest** | 0.95 | 0.80 | 0.86 | 4 | 20 |
 | XGBoost | 0.96 | 0.80 | 0.877 | 3 | 20 |
-| Isolation Forest (unsupervised) | 0.31 | 0.35 | — | 75 | 64 |
+| Isolation Forest | 0.31 | 0.35 | — | 75 | 64 |
 
-Random Forest and XGBoost were both evaluated at a matched recall of 0.80, by tuning each model's decision threshold independently off its own precision-recall curve. This isolates the comparison to precision at equal recall, rather than comparing arbitrary default thresholds.
+Random Forest and XGBoost are both shown at recall = 0.80, tuned to that point off each model's own precision-recall curve. Comparing them at their default thresholds wouldn't mean much since the two models' probability outputs aren't on the same scale.
 
----
+## Logistic Regression
 
-## Logistic Regression (baseline)
+This was the original baseline, not something I seriously considered deploying. 0.91 recall looks good on paper but precision is 0.06 — about 1,500 false positives on ~57K legit transactions in the test set. Fraud here depends on non-linear interactions between the PCA components, and Logistic Regression can only draw a straight line through that space, so this result is expected rather than surprising.
 
-High recall (0.91) but unusably low precision (0.06) — roughly 1,500 false positives per ~57,000 legitimate transactions. Included only as a baseline to demonstrate why a linear model is a poor fit here: fraud signal in this dataset is driven by non-linear relationships among the PCA-transformed features, which Logistic Regression's linear decision boundary cannot capture.
+## Random Forest
 
-## Random Forest — deployed model
-
-Trained with `class_weight='balanced'` to address the 0.173% fraud rate without synthetic data. Default threshold (0.5) gave 0.96 precision / 0.74 recall; tuned to 0.41 (the edge of the precision-recall curve's flat plateau) to recover recall to 0.80 at minimal precision cost (0.96 → 0.95). See Section 5 of the main project write-up for the full threshold-selection reasoning.
-
-**Why this remains the deployed model despite XGBoost's marginal edge:** see Decision below.
+Same as documented in the main writeup: `class_weight='balanced'`, threshold tuned from the default 0.5 down to 0.41 to recover recall from 0.74 to 0.80 without losing much precision (0.96 → 0.95).
 
 ## XGBoost
 
-Gradient-boosted trees, trained sequentially so each tree corrects the errors of the ones before it — a meaningfully different approach from Random Forest's independent, parallel trees. Class imbalance handled via `scale_pos_weight` (≈577, computed as the ratio of legit to fraud transactions in the training set — XGBoost's equivalent of `class_weight='balanced'`, though it must be calculated explicitly rather than passed as a keyword).
+Wanted to check if a boosting approach (trees built sequentially to fix the previous trees' mistakes) would beat Random Forest's bagging approach (independent trees averaged together) on this kind of imbalanced problem.
 
-At matched recall (0.80), XGBoost edges out Random Forest slightly: one fewer false positive (3 vs. 4) and a higher PR-AUC (0.877 vs. 0.86), indicating marginally better overall ranking quality. Notably, **false negatives were identical (20) for both models** — on the metric that matters most for a bank (catching fraud), the two models perform the same at this operating point; the difference is confined to precision at the margin.
+Class imbalance handling is different here. No `class_weight='balanced'` option, so I had to compute `scale_pos_weight` manually (ratio of legit to fraud counts in the training set, came out to ~577.3) and pass it in directly.
 
-One calibration note worth flagging: XGBoost's tuned threshold (0.986) is far higher than Random Forest's (0.41). This is not evidence of XGBoost being "more confident" in any meaningful sense — it reflects that the two models' probability outputs sit on different internal scales (Random Forest's are softened by averaging across 100 independent trees; XGBoost's are pushed toward the extremes by sequential boosting combined with `scale_pos_weight`). This is why models were compared at matched recall rather than matched raw threshold — the threshold values themselves aren't directly comparable across model types.
+At matched recall (0.80), XGBoost is slightly ahead: 3 false positives vs Random Forest's 4, PR-AUC 0.877 vs 0.86. But false negatives are exactly the same (20) for both, so on the number that actually costs the bank money (missed frauds), there's no difference. The gap is only in precision at the margin.
 
-## Isolation Forest (unsupervised)
+One thing that initially looked odd is XGBoost's tuned threshold came out to 0.986, nowhere close to Random Forest's 0.41. Turns out this isn't XGBoost being "more sure" of anything, it's just that boosted trees combined with `scale_pos_weight` push probabilities toward the extremes, while Random Forest's averaging across 100 trees keeps its probabilities more spread out. The two thresholds aren't measuring the same thing, which is exactly why I compared both models at matched recall instead of matched threshold.
 
-Included to test a fundamentally different paradigm: anomaly detection based on geometric isolation, rather than supervised classification. Trained without labels (`y_train` never used in `.fit()`); `contamination` set to the true training-set fraud rate to give it the fairest possible operating point.
+## Isolation Forest
 
-Performance was substantially worse (0.31 precision / 0.35 recall) than either supervised model. This is a meaningful negative result, not a failed experiment: it indicates that fraud in this dataset is not simply *statistical outlier* behavior separable by geometric isolation — it has label-dependent structure that supervised learning can exploit but pure anomaly detection cannot see. This confirms supervised classification was the correct approach given labeled data is available, rather than an assumption taken for granted.
+Wanted to test an unsupervised approach too. No labels used during training (`.fit(X_train)` only, no `y_train`). `contamination` was set to the actual fraud rate in the training data (`y_train.mean()`), which is a bit of a shortcut since a real unsupervised setup wouldn't have that number available, but it gives the model its best possible shot for this comparison.
 
----
+Results were clearly worse: 0.31 precision, 0.35 recall. Makes sense once you think about what the model is actually doing. It flags points that are geometrically easy to isolate from the rest of the data. Fraud here has a real learnable relationship to the labels. It isn't just generic statistical weirdness. So this result is basically confirmation that using the labels (i.e., supervised learning) was the right call.
 
-## Decision: Random Forest remains the deployed model
+## Why Random Forest, not XGBoost
 
-XGBoost's improvement is real but marginal (1 fewer false positive out of ~57,000 transactions; ~0.017 PR-AUC gain) and comes with costs: an additional dependency, a less intuitive threshold to reason about and explain, and a need to re-validate the full FastAPI pipeline against a new model artifact. Given Random Forest is already deployed, tested end-to-end (unit tests, live API validation), and well understood, the marginal metric gain does not currently justify the switch.
+XGBoost is marginally better on paper but the gap is small. One fewer false positive out of ~57K transactions, and a PR-AUC difference of about 0.017. That's not enough on its own to justify swapping out a model that's already deployed, tested end-to-end, and has a threshold I can explain in one sentence. Adding XGBoost as a dependency and re-validating the whole pipeline against a new model file is real work for a marginal gain.
 
-This is treated as a live decision, not a closed one — if false positives become a measured problem in a more realistic deployment scenario, or if the dependency cost becomes worth it for other reasons, XGBoost is the documented next step, and the modular design of the API (`preprocessing.py` / `main.py` separated from the model artifact) makes swapping it in straightforward.
+If false positives turn out to matter more in practice, or there's a specific reason to prioritize that extra bit of precision, XGBoost is the documented next option and since the model is decoupled from the API code, swapping it in later isn't a big lift.
