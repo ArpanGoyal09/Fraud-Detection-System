@@ -3,6 +3,7 @@ uvicorn[standard]
 pydantic
 httpx
 pytest
+xgboost
 scikit-learn==1.6.1
 joblib
 pandas
