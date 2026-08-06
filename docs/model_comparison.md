@@ -7,7 +7,7 @@ Random Forest is the model actually deployed in this project. Before settling on
 | Model | Precision | Recall | PR-AUC | FP | FN |
 |---|---|---|---|---|---|
 | Logistic Regression | 0.06 | 0.91 | — | ~1,500 | ~9 |
-| **Random Forest** | 0.95 | 0.80 | 0.86 | 4 | 20 |
+| Random Forest | 0.95 | 0.80 | 0.86 | 4 | 20 |
 | XGBoost | 0.96 | 0.80 | 0.877 | 3 | 20 |
 | Isolation Forest | 0.31 | 0.35 | — | 75 | 64 |
 
@@ -35,7 +35,7 @@ One thing that initially looked odd is XGBoost's tuned threshold came out to 0.9
 
 Wanted to test an unsupervised approach too. No labels used during training (`.fit(X_train)` only, no `y_train`). `contamination` was set to the actual fraud rate in the training data (`y_train.mean()`), which is a bit of a shortcut since a real unsupervised setup wouldn't have that number available, but it gives the model its best possible shot for this comparison.
 
-Results were clearly worse: 0.31 precision, 0.35 recall. Makes sense once you think about what the model is actually doing. It flags points that are geometrically easy to isolate from the rest of the data. Fraud here has a real learnable relationship to the labels. It isn't just generic statistical weirdness. So this result is basically confirmation that using the labels (i.e., supervised learning) was the right call.
+Results were clearly worse: 0.31 precision, 0.35 recall. Makes sense once you think about what the model is actually doing. It flags points that are geometrically easy to isolate from the rest of the data. Since fraud here has a real learnable relationship to the labels, it isn't just generic statistical weirdness, so this result is basically confirmation that using the labels (i.e., supervised learning) was the right call.
 
 ## Why Random Forest, not XGBoost
 
