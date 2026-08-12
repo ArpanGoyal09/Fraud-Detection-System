@@ -31,7 +31,7 @@ Credit card fraud detection is a classification problem with severe class imbala
 
 **Evaluation:** PR-AUC, not ROC-AUC, is the headline metric. Under this level of class imbalance, ROC-AUC is inflated by the huge number of true negatives and doesn't reflect real-world usefulness.
 
-Full reasoning for every decision above — including what was tried and rejected — is in [`docs/model_comparison.md`](docs/model_comparison.md).
+Full reasoning for every decision above, including what was tried and rejected, is in [`docs/model_comparison.md`](docs/model_comparison.md).
 
 ## Results
 
@@ -74,11 +74,11 @@ pytest tests/ -v
 ## Project structure
 
 ```
-├── data/               # dataset (gitignored)
-├── docs/                # model comparison writeup and reasoning
-├── models/              # trained model + scaler artifacts
-├── notebooks/           # EDA, training, and model comparison scripts
-├── src/                 # FastAPI application
+├── data/                 # dataset (gitignored)
+├── docs/                 # model comparison writeup and reasoning
+├── models/               # trained model + scaler artifacts
+├── notebooks/            # EDA, training, and model comparison scripts
+├── src/                  # FastAPI application
 │   ├── main.py           # API endpoints
 │   ├── preprocessing.py  # feature engineering pipeline (mirrors training)
 │   └── schemas.py        # request/response validation
