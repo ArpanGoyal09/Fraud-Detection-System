@@ -1,6 +1,6 @@
 # Model Comparison
 
-Random Forest is the model actually deployed in this project. Before settling on it, I benchmarked it against XGBoost and Isolation Forest to check whether a different approach would do better. All three were trained and evaluated on the same train/test split (`random_state=42`, `test_size=0.2`, stratified) and the same preprocessing, so the comparison is fair and any difference in results comes from the model, not the data.
+Random Forest is the model actually deployed in this project. Before settling on it, I benchmarked it against XGBoost and Isolation Forest to check whether a different approach would do better. All three were trained and evaluated on the same train/test split (`random_state=42`, `test_size=0.2`, stratified) and the same preprocessing, so any difference in results comes from the model, not the data.
 
 ## Results
 

@@ -54,6 +54,8 @@ The trained model is served through a FastAPI app (`src/main.py`). It accepts a 
 - `GET /` for health check
 - `POST /predict` to score a transaction
 
+![Request flow](docs/architecture.svg)
+
 ### Running locally
 
 ```bash
