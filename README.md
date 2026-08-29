@@ -58,9 +58,10 @@ git clone https://github.com/ArpanGoyal09/Fraud-Detection-System.git
 cd Fraud-Detection-System
 python -m venv venv
 venv\Scripts\activate        # Windows
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 uvicorn src.main:app --reload
 ```
+`requirements.txt` holds runtime dependencies only; `requirements-dev.txt` adds testing and experimentation packages (pytest, XGBoost) on top. The deployed instance installs only the runtime set.
 
 Then open `http://127.0.0.1:8000/docs` for an interactive test page, or run the automated tests:
 
