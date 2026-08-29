@@ -1,4 +1,4 @@
-<svg width="100%" viewBox="0 0 680 700" role="img" xmlns="http://www.w3.org/2000/svg">
+<svg width="100%" viewBox="0 0 680 716" role="img" xmlns="http://www.w3.org/2000/svg">
 <title>Fraud detection API deployment architecture on AWS EC2</title>
 <desc>A client sends a raw transaction over HTTP port 8000 to an AWS EC2 instance. A security group allows public traffic on port 8000 and restricts SSH. Inside the instance, systemd supervises a uvicorn process running the FastAPI app, which validates the request, preprocesses it, scores it with a Random Forest model at a 0.41 threshold, and returns a fraud flag and probability.</desc>
 <defs>
@@ -13,7 +13,7 @@
 <line x1="340" y1="80" x2="340" y2="124" marker-end="url(#arrow)" style="fill:none;stroke:rgb(137, 135, 129);stroke-width:1.5px"/>
 <text x="352" y="102" dominant-baseline="central" style="fill:rgb(95, 94, 90);font-family:-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:400">HTTP · port 8000</text>
 
-<rect x="40" y="124" width="600" height="552" rx="10" style="fill:none;stroke:rgb(180, 178, 172);stroke-width:1px;stroke-dasharray:4 4"/>
+<rect x="40" y="124" width="600" height="576" rx="10" style="fill:none;stroke:rgb(180, 178, 172);stroke-width:1px;stroke-dasharray:4 4"/>
 <text x="60" y="148" dominant-baseline="central" style="fill:rgb(95, 94, 90);font-family:-apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:12px;font-weight:500">AWS EC2 · Ubuntu 24.04 · t3.micro</text>
 
 <g>
