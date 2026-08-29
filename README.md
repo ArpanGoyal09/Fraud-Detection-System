@@ -1,17 +1,8 @@
 # Fraud Detection System
 
-A credit card fraud detection system: a Random Forest classifier trained on transaction data, served through a FastAPI wrapper. 
+A credit card fraud detection system: a Random Forest classifier trained on transaction data, served through a FastAPI wrapper and deployed on AWS EC2.
 
-## Status
-
-- [x] EDA + preprocessing
-- [x] Model training (Random Forest, tuned threshold)
-- [x] FastAPI wrapper with tests
-- [x] Model comparison (XGBoost, Isolation Forest)
-- [ ] OCI deployment
-- [ ] Live endpoint / deployment architecture
-
-This is a work in progress. Everything below reflects what's actually built and tested; deployment is the one piece still outstanding.
+**Live:** http://52.3.144.8:8000 (interactive docs at [`/docs`](http://52.3.144.8:8000/docs))
 
 ## The problem
 
@@ -27,7 +18,7 @@ Credit card fraud detection is a classification problem with severe class imbala
 
 **Imbalance handling:** Class weighting (`class_weight='balanced'`) rather than SMOTE to avoid synthetic data artifacts in a high-dimensional PCA space where interpolation between points is hard to reason about.
 
-**Model:** Random Forest was chosen over Logistic Regression because fraud signal here depends on non-linear relationships between PCA components, which a linear model can't capture. The decision threshold was tuned from the default 0.5 down to **0.41**, the edge of the precision-recall curve's flat plateau, trading a small amount of precision for meaningfully better recall.
+**Model:** Random Forest was chosen over Logistic Regression because fraud signal here depends on non-linear relationships between PCA components, which a linear model can't capture. The decision threshold was tuned from the default 0.5 down to **0.41**, the edge of the precision-recall curve's flat plateau, trading a small amount of precision for better recall.
 
 **Evaluation:** PR-AUC, not ROC-AUC, is the headline metric. Under this level of class imbalance, ROC-AUC is inflated by the huge number of true negatives and doesn't reflect real-world usefulness.
 
@@ -55,6 +46,10 @@ The trained model is served through a FastAPI app (`src/main.py`). It accepts a 
 - `POST /predict` to score a transaction
 
 ![Request flow](docs/architecture.svg)
+
+### Deployment
+
+Running on an AWS EC2 instance (Ubuntu 24.04, t3.micro) managed by systemd, so the service survives disconnects and restarts automatically on failure or reboot. `scikit-learn` is pinned to 1.6.1 to match the version the model was trained under, which keeps predictions identical between local and deployed environments.
 
 ### Running locally
 
@@ -90,11 +85,5 @@ pytest tests/ -v
 ## Limitations
 
 - **`V1`–`V28` are specific to this dataset's PCA transformation** and aren't transferable to other fraud datasets because a different dataset's anonymized features, even if similarly named, would represent a different underlying transformation and can't be validly scored by this model.
-- **No live deployment yet** but the API is fully built and tested locally.
+- Served over plain HTTP with no TLS, authentication, or rate limiting. Fine for a demo endpoint, not something that should handle real transaction data.
 - Trained on data from a fixed time window; a production system would need to handle model drift as fraud patterns evolve over time.
-
-## What's next
-
-- OCI deployment
-- Deployment architecture diagram
-- Live endpoint link and latency numbers, once deployed
