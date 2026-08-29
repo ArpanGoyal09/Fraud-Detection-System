@@ -1,5 +1,7 @@
 # Fraud Detection System
 
+![tests](https://github.com/ArpanGoyal09/Fraud-Detection-System/actions/workflows/tests.yml/badge.svg)
+
 A credit card fraud detection system: a Random Forest classifier trained on transaction data, served through a FastAPI wrapper and deployed on AWS EC2.
 
 **Live:** http://52.3.144.8:8000 (interactive docs at [`/docs`](http://52.3.144.8:8000/docs))
@@ -34,6 +36,7 @@ Full reasoning for every decision above, including what was tried and rejected, 
 | ROC-AUC | 0.953 |
 | False positives (test set) | 4 out of 56,864 legitimate transactions |
 | False negatives (test set) | 20 out of 98 fraud cases |
+| Prediction latency (p95) | 29 ms |
 
 Also benchmarked against XGBoost (marginally better, not deployed, see comparison doc for why) and Isolation Forest (unsupervised, notably worse, confirms this problem benefits from labeled data rather than pure anomaly detection).
 
