@@ -5,6 +5,7 @@
 A credit card fraud detection system: a Random Forest classifier trained on transaction data, served through a FastAPI wrapper and deployed on AWS EC2.
 
 **Live:** http://52.3.144.8:8000 (interactive docs at [`/docs`](http://52.3.144.8:8000/docs))
+(*Demo instance, may be offline.*)
 
 ## The problem
 
@@ -48,11 +49,32 @@ The trained model is served through a FastAPI app (`src/main.py`). It accepts a 
 - `GET /` for health check
 - `POST /predict` to score a transaction
 
+Example request against the live instance:
+
+```bash
+curl -X POST http://52.3.144.8:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"Time": 406.0, "Amount": 9.99,
+       "V1": -2.3122, "V2": 1.9519, "V3": -1.6098, "V4": 3.9979,
+       "V5": -0.5222, "V6": -1.4265, "V7": -2.5373, "V8": 1.3916,
+       "V9": -2.7700, "V10": -2.7722, "V11": 3.2020, "V12": -2.8999,
+       "V13": -0.5952, "V14": -4.2892, "V15": 0.3898, "V16": -1.1407,
+       "V17": -2.8300, "V18": -0.0168, "V19": 0.4169, "V20": 0.1269,
+       "V21": 0.5172, "V22": -0.0350, "V23": -0.4652, "V24": 0.3202,
+       "V25": 0.0445, "V26": 0.1780, "V27": 0.2611, "V28": -0.1433}'
+```
+
+This is a known fraud case from the test set. Expected response:
+
+```json
+{"is_fraud": true, "fraud_probability": 0.58, "threshold_used": 0.41}
+```
+
 ![Request flow](docs/architecture.svg)
 
 ### Deployment
 
-Running on an AWS EC2 instance (Ubuntu 24.04, t3.micro) managed by systemd, so the service survives disconnects and restarts automatically on failure or reboot. `scikit-learn` is pinned to 1.6.1 to match the version the model was trained under, which keeps predictions identical between local and deployed environments.
+Running on an AWS EC2 instance (Ubuntu 24.04, t3.micro) managed by systemd, so the service survives disconnects and restarts automatically on failure or reboot. `scikit-learn` is pinned to 1.6.1 to match the version the model was trained under, which keeps the serving environment consistent with the one the model was trained and validated in.
 
 ### Running locally
 
@@ -60,7 +82,8 @@ Running on an AWS EC2 instance (Ubuntu 24.04, t3.micro) managed by systemd, so t
 git clone https://github.com/ArpanGoyal09/Fraud-Detection-System.git
 cd Fraud-Detection-System
 python -m venv venv
-venv\Scripts\activate        # Windows
+source venv/bin/activate      # macOS / Linux
+venv\Scripts\activate         # Windows
 pip install -r requirements-dev.txt
 uvicorn src.main:app --reload
 ```
